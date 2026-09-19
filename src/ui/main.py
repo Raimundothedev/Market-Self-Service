@@ -205,11 +205,17 @@ class Main(ctk.CTkFrame):
         )
 
     # Functions
-
     def save_stock(self):
-        name = self.product_name.get().strip()
+        name = self.product_name.get().strip().capitalize()
         price = self.product_value.get().strip()
         amount = self.product_amount.get().strip()
+
+        if not name or not price or not amount:
+            messagebox.showwarning(
+                "IMPUT ERROR",
+                "Preencha corretamente todos os campos presentes."
+            )
+            return
 
         for product in get_all_products():
             if product.name.lower() == name.lower():
@@ -220,7 +226,9 @@ class Main(ctk.CTkFrame):
                 if not confirm:
                     return 
 
-
+        self.product_name.set("")
+        self.product_value.set("")
+        self.product_amount.set("")
         add_product(name, price, amount)
 
         self.update_stock()
@@ -431,7 +439,7 @@ class Main(ctk.CTkFrame):
             "<Button-1>",
             self.handle_tree_click
         )
-        
+
 
     
 

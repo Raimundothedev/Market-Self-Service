@@ -4,7 +4,7 @@ import config
 
 class Sidebar(ctk.CTkFrame):
     def __init__(self, master, select_page, **kwargs):
-        super().__init__(master, fg_color="white", **kwargs)
+        super().__init__(master, **kwargs)
 
         self.select_page = select_page
 
@@ -55,8 +55,8 @@ class Sidebar(ctk.CTkFrame):
                 family="JetBrains Mono"
             ),
             fg_color="transparent",
-            hover_color="#F2F2F2",
-            text_color="#005D92",
+            hover_color="#005D92",
+            text_color="white",
             anchor="w",
             command=lambda: self.select_page("Stock")
         )
@@ -75,8 +75,8 @@ class Sidebar(ctk.CTkFrame):
                 family="JetBrains Mono"
             ),
             fg_color="transparent",
-            hover_color="#F2F2F2",
-            text_color="#005D92",
+            hover_color="#005D92",
+            text_color="white",
             anchor="w",
             command=lambda: self.select_page("Settings")
         )

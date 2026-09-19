@@ -21,11 +21,11 @@ class app(ctk.CTk):
         self.sidebar = Sidebar(
         self,
         self.select_page
-    )
+        )
         self.sidebar.pack(
         side="left",
         fill="y"
-    )
+        )
 
         # Main
         self.main = Main(self)
