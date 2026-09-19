@@ -1,0 +1,8 @@
+APP_NAME = "Market App"
+VERSION = "v0.0.2"
+
+THEME = "dark"
+WINDOW_WIDTH = 1000
+WINDOW_HEIGHT = 700
+
+CURRENCY = "BRL"
