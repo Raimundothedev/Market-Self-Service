@@ -446,7 +446,7 @@ class Main(ctk.CTkFrame):
         column = self.order_opt.get().strip().lower()
         direction = self.direction_opt.get().strip().lower()
         columns = {
-            "Id": "id",
+            "id": "id",
             "nome": "name",
             "preço": "price",
             "quantidade": "amount"
