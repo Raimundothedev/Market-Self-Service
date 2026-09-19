@@ -1,6 +1,7 @@
 from database.database import cursor, connection
 from products.model import Product
-import math as m
+from currency import converter
+from config import config
 
 
 def add_product(name, price=0, amount=0):
@@ -39,8 +40,6 @@ def add_discount(id, discount: float):
     f_price = price * (1 - discount / 100)
     return f_price
 
-
-
 def get_product_data(id):
     """return Product(*data)"""
     cursor.execute("""
@@ -64,7 +63,6 @@ def get_all_products():
 
     return [Product(*product) for product in data]
 
-
 def edit_product(id, name, price, amount):
     if cursor.execute("""
         UPDATE products
@@ -76,8 +74,45 @@ def edit_product(id, name, price, amount):
     else:
         return False
 
+def convert_all_prices(to_currency):
+    from_currency = config.load_config().get("currency")
+    products = get_all_products()
 
-def order_by(column="id", direction="ASC"):
+    for product in products:
+        price = converter.from_usd(
+            converter.to_usd(parse_price(product.price), from_currency),
+            to_currency
+        )
+
+        edit_product(
+            product.id,
+            product.name,
+            price,
+            product.amount
+        )
+    return True
+
+def parse_price(value):
+    if isinstance(value, float):
+        return value
+    value = value.strip()
+
+    if "," in value:
+        value = value.replace(".", "")
+        value = value.replace(",", ".")
+
+    elif "." in value:
+        parts = value.split(".")
+
+        if len(parts[-1]) == 3:
+            value = value.replace(".", "")
+
+    return float(value)
+    
+
+
+
+def order_by(column="id", direction="DESC"):
     allowed_columns = ["id", "name", "price", "amount"]
     allowed_directions = ["ASC", "DESC"]
 

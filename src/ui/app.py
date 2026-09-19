@@ -1,16 +1,18 @@
 import customtkinter as ctk
-import config
+import default
+from config.config import load_config, save_config
 from PIL import Image
 from .sidebar import Sidebar
 from .main import Main
 
-ctk.set_appearance_mode(config.THEME)
+config = load_config()
+ctk.set_appearance_mode(config["theme"])
 
 class app(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title(f"Jaú Auto-Atendimento | {config.VERSION}")
-        self.geometry(f"{config.WINDOW_WIDTH}x{config.WINDOW_HEIGHT}")
+        self.title(f"Jaú Auto-Atendimento | {default.VERSION}")
+        self.geometry(f"{default.WINDOW_WIDTH}x{default.WINDOW_HEIGHT}")
         self.resizable = False
 
         self.create_widgets()
@@ -39,7 +41,9 @@ class app(ctk.CTk):
         )
 
     def select_page(self, page):
-        self.main.set(page)
+        self.main.main.set(page)
+        self.main.update_stock()
+        
 
 
 Window = app()

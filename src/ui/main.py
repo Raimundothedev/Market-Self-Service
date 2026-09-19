@@ -1,6 +1,9 @@
 import customtkinter as ctk
 from tkinter import messagebox, ttk
 from products.repository import *
+from config.config import *
+from currency import converter
+import default
 
 class Main(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -13,19 +16,75 @@ class Main(ctk.CTkFrame):
         )
 
         self._style_configured = False
-        
+
+        self.welcome = "Welcome"
         self.stock = "Stock"
         self.settings = "Settings"
 
+        self.main.add(self.welcome)
         self.main.add(self.stock)
         self.main.add(self.settings)
+        self.main.set(self.welcome)
 
         self.main._segmented_button.grid_forget()
 
+        self.build_welcome()
         self.build_stock()
         self.build_settings()
 
         self.update_stock()
+
+
+    def build_welcome(self):
+        self.welcome_screen = ctk.CTkFrame(
+            self.main.tab("Welcome"),
+            fg_color="transparent"
+        )
+        self.welcome_screen.pack(
+            fill="both",
+            expand=True,
+            padx=20,
+            pady=20
+        )
+
+        ctk.CTkLabel(
+            self.welcome_screen,
+            text="Jaú Auto-Atendimento",
+            font=ctk.CTkFont(
+                family="JetBrains Mono",
+                size=30,
+                weight="bold"
+            )
+        ).pack(pady=(100, 10))
+
+        ctk.CTkLabel(
+            self.welcome_screen,
+            text="Sistema de gerenciamento de estoque",
+            font=ctk.CTkFont(
+                family="JetBrains Mono",
+                size=14
+            )
+        ).pack()
+
+        ctk.CTkLabel(
+            self.welcome_screen,
+            text=f"Version {default.VERSION}",
+            font=ctk.CTkFont(
+                family="JetBrains Mono",
+                size=11
+            ),
+            text_color="gray"
+        ).pack(pady=(10, 30))
+
+        ctk.CTkButton(
+            self.welcome_screen,
+            text="Go to Stock",
+            width=180,
+            command=lambda: self.main.set("Stock")
+        ).pack()
+
+
+
 
     def build_stock(self):
         self.stock_screen = self.main.tab(self.stock)
@@ -45,6 +104,53 @@ class Main(ctk.CTkFrame):
             anchor="w",
             padx=15,
             pady=(10, 0)
+        )
+
+        # Order
+        self.order_frame = ctk.CTkFrame(
+            self.stock_screen,
+            fg_color="transparent"
+        )
+        self.order_frame.pack(
+            anchor="w",
+            padx=15,
+            pady=(10, 5)
+        )
+
+        self.title_order = ctk.CTkLabel(
+            self.order_frame,
+            text="Ordenar por:"
+        )
+        self.title_order.grid(
+            row=0,
+            column=0,
+            padx=(0, 8)
+        )
+
+        self.order_opt = ctk.CTkOptionMenu(
+            self.order_frame,
+            values=["Id", "Nome", "Preço", "Quantidade"],
+            width=180,
+            anchor="w",
+            command=lambda _: self.update_stock()
+        )
+        self.order_opt.grid(
+            row=0,
+            column=1,
+            padx=(0, 15)
+        )
+
+        # Direction
+        self.direction_opt = ctk.CTkOptionMenu(
+            self.order_frame,
+            values=["Crescente", "Decrescente"],
+            width=150,
+            anchor="w",
+            command=lambda _: self.update_stock()
+        )
+        self.direction_opt.grid(
+            row=0,
+            column=2
         )
 
         # Products
@@ -188,17 +294,17 @@ class Main(ctk.CTkFrame):
             padx=15,
             pady=(15, 5)
         )
-
         self.currency_menu = ctk.CTkOptionMenu(
             self.settings_screen,
-            values=["BRL", "USD"],
+            values=["USD", "BRL", "EUR", "GBP", "JPY", "CAD", "CHF", "ZAR"],
             width=150,
             font=ctk.CTkFont(
                 size=12,
                 family="JetBrains Mono"
             ),
-            #command=self.switch_currency
+            command=self.switch_currency
         )
+        self.currency_menu.set(load_config().get("currency"))
         self.currency_menu.pack(
             anchor="w",
             padx=15
@@ -206,7 +312,8 @@ class Main(ctk.CTkFrame):
 
     # Functions
     def save_stock(self):
-        name = self.product_name.get().strip().capitalize()
+        name = self.product_name.get().strip()
+        name = name[:1].upper() + name[1:]
         price = self.product_value.get().strip()
         amount = self.product_amount.get().strip()
 
@@ -216,7 +323,6 @@ class Main(ctk.CTkFrame):
                 "Preencha corretamente todos os campos presentes."
             )
             return
-
         for product in get_all_products():
             if product.name.lower() == name.lower():
                 confirm = messagebox.askyesno(
@@ -226,9 +332,9 @@ class Main(ctk.CTkFrame):
                 if not confirm:
                     return 
 
-        self.product_name.set("")
-        self.product_value.set("")
-        self.product_amount.set("")
+        self.product_name.delete(0, "end")
+        self.product_value.delete(0, "end")
+        self.product_amount.delete(0, "end")
         add_product(name, price, amount)
 
         self.update_stock()
@@ -335,11 +441,33 @@ class Main(ctk.CTkFrame):
         )
 
         self._style_configured = True
+
+    def order_stock(self):
+        column = self.order_opt.get().strip().lower()
+        direction = self.direction_opt.get().strip().lower()
+        columns = {
+            "Id": "id",
+            "nome": "name",
+            "preço": "price",
+            "quantidade": "amount"
+        }
+        directions = {
+            "crescente": "ASC",
+            "decrescente": "DESC"
+        }
+
+        column = columns.get(column)
+        direction = directions.get(direction)
+        
+        return order_by(column, direction)
         
 
     def update_stock(self):
-        products = get_all_products()
+        
+        products = self.order_stock()
         units = self.amount_menu.get()
+        currency = load_config().get("currency")
+        c_symbol = converter.currencies[currency].symbol
 
         if not self._style_configured:
             self.configure_style()
@@ -409,7 +537,7 @@ class Main(ctk.CTkFrame):
                     product.id,
                     product.name,
                     f"{product.amount} {units}",
-                    f"R$ {product.price}"
+                    f"{c_symbol} {product.price}"
                 )
             )
 
@@ -439,6 +567,25 @@ class Main(ctk.CTkFrame):
             "<Button-1>",
             self.handle_tree_click
         )
+
+    def switch_currency(self, currency):
+        config = load_config()
+        if currency not in converter.symbols:
+            return
+        option = messagebox.askyesno(
+            "convert_all_prices",
+            "Você gostaria de converter todos os preços listados para a moeda selecionada?"
+        )
+        if not option:
+            update_config("currency", currency)
+            return
+        convert_all_prices(currency)
+        update_config("currency", currency)
+
+
+
+        
+
 
 
     

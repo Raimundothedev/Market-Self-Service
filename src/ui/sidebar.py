@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import config
+import default
 
 
 class Sidebar(ctk.CTkFrame):
@@ -89,7 +89,7 @@ class Sidebar(ctk.CTkFrame):
         # Version
         self.version = ctk.CTkLabel(
             self,
-            text=config.VERSION,
+            text=default.VERSION,
             font=ctk.CTkFont(
                 size=11,
                 family="JetBrains Mono"
